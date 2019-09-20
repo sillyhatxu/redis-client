@@ -1,11 +1,15 @@
 package redislock
 
 import (
-	"errors"
-	"github.com/bsm/redis-lock"
-	redis "github.com/sillyhatxu/convenient-utils/redis/goredis"
-	log "github.com/sirupsen/logrus"
+	"fmt"
+	"github.com/sillyhatxu/redis-client/redis"
+	"sync"
 	"time"
+)
+
+const (
+	Lock   = "1"
+	Unlock = "0"
 )
 
 type LockInterface interface {
@@ -13,39 +17,76 @@ type LockInterface interface {
 	Execute() error
 }
 
-func RedisLock(lockInterface LockInterface) error {
-	defer log.Debugf("... RedisLock End ...")
-	client, err := redis.RedisConf.GetClient()
-	if err != nil {
-		return err
+type RedisLockClient struct {
+	redisClient *client.Client
+	config      *Config
+	mu          sync.Mutex
+}
+
+const (
+	defaultTimeout  = 10 * time.Second
+	defaultAttempts = 30
+	defaultDelay    = 200 * time.Millisecond
+)
+
+func NewRedisLockClient(redisClient *client.Client, opts ...Option) *RedisLockClient {
+	//default
+	config := &Config{
+		timeout:  defaultTimeout,
+		attempts: defaultAttempts,
+		delay:    defaultDelay,
 	}
-	defer client.Close()
-	log.Debug("Connect to Redis")
-	var locker *lock.Locker
-	for i := 1; i <= 30; i++ {
-		locker, err = lock.Obtain(client, lockInterface.LockKey(), nil)
+	for _, opt := range opts {
+		opt(config)
+	}
+	return &RedisLockClient{
+		redisClient: redisClient,
+		config:      config,
+	}
+}
+
+func (rlc RedisLockClient) Do(lockInterface LockInterface) error {
+	rlc.mu.Lock()
+	defer rlc.mu.Unlock()
+
+	var n uint
+	for n < rlc.config.attempts {
+		lockSrc, err := rlc.redisClient.Get(lockInterface.LockKey())
 		if err != nil {
-			log.Debugf("... Hold [%v] ...", lockInterface.LockKey())
-			time.Sleep(time.Duration(i*200) * time.Millisecond)
-		} else if locker == nil {
-			log.Error("locker is null")
 			return err
-		} else {
-			hasLock, err := locker.Lock()
+		}
+		if lockSrc == "" || lockSrc == Unlock {
+			err = rlc.lock(lockInterface.LockKey())
 			if err != nil {
-				log.Error(err)
 				return err
 			}
-			if hasLock {
-				defer locker.Unlock()
-				err = lockInterface.Execute()
-				if err != nil {
-					return err
-				}
-				return nil
+			err = lockInterface.Execute()
+			if err != nil {
+				return err
 			}
-			return errors.New("[ locker.Lock() ] Unknow error.")
+			err := rlc.unlock(lockInterface.LockKey())
+			if err != nil {
+				return err
+			}
 		}
+		if n == rlc.config.attempts-1 {
+			return fmt.Errorf("The number of retries is over")
+		}
+		time.Sleep(rlc.config.delayType(n, rlc.config))
+		n++
+		continue
 	}
-	return err
+	return fmt.Errorf("unknow error")
+}
+
+func (rlc RedisLockClient) lock(key string) error {
+	rlc.mu.Lock()
+	defer rlc.mu.Unlock()
+	return rlc.redisClient.SetByExpiration(key, Lock, rlc.config.timeout)
+}
+
+func (rlc RedisLockClient) unlock(key string) error {
+	rlc.mu.Lock()
+	defer rlc.mu.Unlock()
+	return rlc.redisClient.SetByExpiration(key, Unlock, rlc.config.timeout)
 }
