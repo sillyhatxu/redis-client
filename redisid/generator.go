@@ -14,7 +14,6 @@ const (
 )
 
 type GeneratorClient struct {
-	redisKey        string
 	generatorClient *idgenerator.GeneratorClient
 }
 
@@ -41,14 +40,13 @@ func NewGeneratorConfig(redisKey string, redisClient *client.Client, opts ...Opt
 	}
 
 	return &GeneratorClient{
-		redisKey: redisKey,
 		generatorClient: idgenerator.NewGeneratorClient(
 			redisKey,
 			idgenerator.Prefix(config.Prefix),
 			idgenerator.GroupLength(config.GroupLength),
 			idgenerator.SequenceFormat(config.SequenceFormat),
 			idgenerator.Instance(fmt.Sprintf("%d", i)),
-			idgenerator.LifeCycle(5*time.Second),
+			idgenerator.LifeCycle(config.LifeCycle),
 		),
 	}, nil
 }
