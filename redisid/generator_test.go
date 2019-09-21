@@ -2,7 +2,6 @@ package redisid
 
 import (
 	"fmt"
-	"github.com/sillyhatxu/go-utils/hashset"
 	"github.com/sillyhatxu/redis-client/redis"
 	"github.com/stretchr/testify/assert"
 	"strconv"
@@ -27,42 +26,19 @@ func TestTime(t *testing.T) {
 }
 
 func TestGeneratorId(t *testing.T) {
-	var generatorConfig = NewGeneratorConfig("id.generator.seq.test", redisClient)
-	id, err := generatorConfig.GeneratorId()
+	generatorClient, err := NewGeneratorClient("id.generator.seq.test", redisClient)
+	assert.Nil(t, err)
+	id, err := generatorClient.GeneratorId()
 	assert.Nil(t, err)
 	fmt.Println(id)
 }
 
-var testHashSet = hashset.New()
-
 func TestGeneratorGroupId(t *testing.T) {
-	var generatorConfig = NewGeneratorConfig("id.generator.seq.test.group", redisClient, Prefix("T"))
-	go func() {
-		for i := 0; i < 50; i++ {
-			id, err := generatorConfig.GeneratorGroupId("test")
-			assert.Nil(t, err)
-			fmt.Println(id)
-			testHashSet.Add(id)
-			fmt.Println(testHashSet.Size())
-		}
-	}()
-	go func() {
-		for i := 0; i < 50; i++ {
-			id, err := generatorConfig.GeneratorGroupId("test")
-			assert.Nil(t, err)
-			fmt.Println(id)
-			testHashSet.Add(id)
-			fmt.Println(testHashSet.Size())
-		}
-	}()
-	go func() {
-		for i := 0; i < 50; i++ {
-			id, err := generatorConfig.GeneratorGroupId("test")
-			assert.Nil(t, err)
-			fmt.Println(id)
-			testHashSet.Add(id)
-		}
-		fmt.Println(testHashSet.Size())
-	}()
-	time.Sleep(30 * time.Second)
+	generatorClient, err := NewGeneratorClient("id.generator.seq.test.group", redisClient, Prefix("T"))
+	assert.Nil(t, err)
+	for i := 0; i < 50; i++ {
+		id, err := generatorClient.GeneratorGroupId("test")
+		assert.Nil(t, err)
+		fmt.Println(id)
+	}
 }

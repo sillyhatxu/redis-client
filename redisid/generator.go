@@ -17,7 +17,7 @@ type GeneratorClient struct {
 	generatorClient *idgenerator.GeneratorClient
 }
 
-func NewGeneratorConfig(redisKey string, redisClient *client.Client, opts ...Option) (*GeneratorClient, error) {
+func NewGeneratorClient(redisKey string, redisClient *client.Client, opts ...Option) (*GeneratorClient, error) {
 	if redisKey == "" {
 		return nil, fmt.Errorf("redis key cannot empty")
 	}
