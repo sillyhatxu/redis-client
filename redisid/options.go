@@ -1,12 +1,10 @@
 package redisid
 
 import (
-	"github.com/sillyhatxu/redis-client/redis"
 	"time"
 )
 
 type Config struct {
-	RedisClient    *client.Client
 	Prefix         string
 	GroupLength    int
 	SequenceFormat string
@@ -14,12 +12,6 @@ type Config struct {
 }
 
 type Option func(*Config)
-
-func RedisClient(redisclient *client.Client) Option {
-	return func(c *Config) {
-		c.RedisClient = redisclient
-	}
-}
 
 func Prefix(prefix string) Option {
 	return func(c *Config) {
