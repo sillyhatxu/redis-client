@@ -34,11 +34,14 @@ func TestGeneratorId(t *testing.T) {
 }
 
 func TestGeneratorGroupId(t *testing.T) {
-	generatorClient, err := NewGeneratorClient("id.generator.seq.test.group", redisClient, Prefix("T"))
-	assert.Nil(t, err)
-	for i := 0; i < 50; i++ {
-		id, err := generatorClient.GeneratorGroupId("test")
+	for i := 0; i < 5; i++ {
+		generatorClient, err := NewGeneratorClient("id.generator.seq.test.group", redisClient, Prefix("T"))
 		assert.Nil(t, err)
-		fmt.Println(id)
+		for j := 0; j < 50; j++ {
+			id, err := generatorClient.GeneratorGroupId("test")
+			assert.Nil(t, err)
+			fmt.Println(id)
+		}
 	}
+	time.Sleep(10 * time.Second)
 }

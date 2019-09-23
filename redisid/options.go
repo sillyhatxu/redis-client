@@ -1,14 +1,14 @@
 package redisid
 
 import (
-	"time"
+	"github.com/sillyhatxu/id-generator"
 )
 
 type Config struct {
 	Prefix         string
 	GroupLength    int
 	SequenceFormat string
-	LifeCycle      time.Duration
+	LifeCycle      idgenerator.LifeCycleType
 }
 
 type Option func(*Config)
@@ -31,7 +31,7 @@ func SequenceFormat(sequenceFormat string) Option {
 	}
 }
 
-func LifeCycle(lifeCycle time.Duration) Option {
+func LifeCycle(lifeCycle idgenerator.LifeCycleType) Option {
 	return func(c *Config) {
 		c.LifeCycle = lifeCycle
 	}

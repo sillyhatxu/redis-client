@@ -42,14 +42,6 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:fa32349cc5542a376aa32b923a8728d9674de839266b6d5270cf2725a69a7e90"
-  name = "github.com/sillyhatxu/go-utils"
-  packages = ["hashset"]
-  pruneopts = "UT"
-  revision = "9c2da95eb17676c264e163612883251133117b53"
-  version = "v1.0.1"
-
-[[projects]]
   digest = "1:2747dcaf4bf45495995ff624f5522ff2d36af38d100181ec0865427d58e3ba29"
   name = "github.com/sillyhatxu/gocache-client"
   packages = ["."]
@@ -58,12 +50,12 @@
   version = "v1.0.1"
 
 [[projects]]
-  digest = "1:09e2ae6810d6bf46d65a6d074b0b7ebf2abdd6fd9c88242f1dffbd64c045a165"
+  digest = "1:df0f7ef34ccab03fc732fcee637d6a8e95c674c743aeb69103326d76000d3fe5"
   name = "github.com/sillyhatxu/id-generator"
   packages = ["."]
   pruneopts = "UT"
-  revision = "15112c41fda1c414dbd344a9107d48721be1fcbe"
-  version = "v1.0.1"
+  revision = "0cd531ca2000bcd78aa8fb51e442aa4743769a92"
+  version = "v1.0.2"
 
 [[projects]]
   digest = "1:8548c309c65a85933a625be5e7d52b6ac927ca30c56869fae58123b8a77a75e1"
@@ -86,7 +78,6 @@
   analyzer-version = 1
   input-imports = [
     "github.com/go-redis/redis",
-    "github.com/sillyhatxu/go-utils/hashset",
     "github.com/sillyhatxu/id-generator",
     "github.com/stretchr/testify/assert",
   ]

@@ -10,7 +10,7 @@ import (
 const (
 	defaultGroupLength    int    = 2
 	defaultSequenceFormat string = "%04d"
-	defaultLifeCycle             = 2 * time.Second
+	defaultLifeCycle             = idgenerator.Minute
 )
 
 type GeneratorClient struct {
@@ -25,6 +25,10 @@ func NewGeneratorClient(redisKey string, redisClient *client.Client, opts ...Opt
 		return nil, fmt.Errorf("redis client is nill")
 	}
 	i, err := redisClient.Incr(redisKey)
+	if err != nil {
+		return nil, err
+	}
+	err = redisClient.Expire(redisKey, 10*time.Second)
 	if err != nil {
 		return nil, err
 	}
