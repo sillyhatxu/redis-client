@@ -2,7 +2,7 @@ package client
 
 import (
 	"fmt"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v7"
 	"time"
 )
 
@@ -86,7 +86,7 @@ func (c *Client) SetByExpiration(key, value string, expiration time.Duration) er
 	if err != nil {
 		return err
 	}
-	err = client.Set(key, value, 0).Err()
+	err = client.Set(key, value, expiration).Err()
 	if err != nil {
 		return err
 	}
@@ -121,4 +121,16 @@ func (c *Client) Incr(key string) (int64, error) {
 	}
 	seq := client.Incr(key).Val()
 	return seq, nil
+}
+
+func (c *Client) IncrByExpiration(key string, expiration time.Duration) (result int64, err error) {
+	result, err = c.Incr(key)
+	if err != nil {
+		return
+	}
+	err = c.Expire(key, expiration)
+	if err != nil {
+		return
+	}
+	return
 }
