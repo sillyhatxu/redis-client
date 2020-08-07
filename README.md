@@ -13,4 +13,5 @@
 ## example
 
 [goredis_test.go](https://github.com/sillyhatxu/redis-client/blob/master/goredis_test.go)
+
 [generator_test.go](https://github.com/sillyhatxu/redis-client/blob/master/redisid/generator_test.go)
