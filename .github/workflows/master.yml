@@ -9,6 +9,18 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis:6.0.6-buster
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 16379:6379
+
     steps:
 
       - name: Set up Go 1.x
