@@ -20,6 +20,7 @@ jobs:
           --health-retries 5
         ports:
           - 16379:6379
+        command: ["redis-server", "--appendonly", "yes","--requirepass", "sillyhatpassword"]
 
     steps:
 
