@@ -33,7 +33,7 @@ func TestSetGet(t *testing.T) {
 	test, err := redisClient.Get("test-src")
 	assert.Nil(t, err)
 	assert.EqualValues(t, "1", test)
-	time.Sleep(time.Second)
+	time.Sleep(2 * time.Second)
 	test, err = redisClient.Get("test-src")
 	assert.Nil(t, err)
 	assert.EqualValues(t, "", test)

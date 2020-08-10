@@ -35,12 +35,18 @@ jobs:
       - name: Get dependencies
         run: go mod vendor
 
-#      - name: Test token
-#        run: echo ${{ secrets.HAHA_SECRET }}
-#        run: echo ${{ secrets.CODECOV_TOKEN }}
-      - name: Test
-        run: go test -v .
+      - name: Create coverage file
+          run: |
+            set -e
+            echo "" > coverage.txt
 
-# If it does not has the main function and doesn't need to build.
-#      - name: Build
-#        run: go build -v .
+            for d in $(go list ./... | grep -v vendor); do
+                go test -race -coverprofile=profile.out -covermode=atomic "$d"
+                if [ -f profile.out ]; then
+                    cat profile.out >> coverage.txt
+                    rm profile.out
+                fi
+            done
+
+      - name: Coverage
+        run: bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_TOKEN }}
