@@ -1,10 +1,8 @@
 package redisid
 
 import (
-	"encoding/hex"
 	"fmt"
 	"github.com/sillyhatxu/redis-client"
-	"strings"
 	"sync"
 	"time"
 )
@@ -89,15 +87,16 @@ func (gc *GeneratorClient) GeneratorGroupId(src string) (string, error) {
 	}
 	gc.mu.Lock()
 	defer gc.mu.Unlock()
+	currentTime := time.Now()
 	group, err := gc.formatGroup(src)
 	if err != nil {
 		return "", err
 	}
-	sequence, err := gc.getSequence(group)
+	sequence, err := gc.getSequence(group, currentTime)
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s%s%s%s", gc.config.Prefix, sequence, gc.getTimeInMillis(), group), nil
+	return fmt.Sprintf("%s%s%s%s", gc.config.Prefix, sequence, gc.getTimeInMillis(currentTime), group), nil
 }
 
 func (gc *GeneratorClient) formatGroup(src string) (string, error) {
@@ -112,8 +111,8 @@ func (gc *GeneratorClient) formatGroup(src string) (string, error) {
 	}
 }
 
-func (gc *GeneratorClient) getSequence(group string) (string, error) {
-	key := fmt.Sprintf("%s_%s_%s", gc.redisKey, group, gc.getKeySuffix())
+func (gc *GeneratorClient) getSequence(group string, currentTime time.Time) (string, error) {
+	key := fmt.Sprintf("%s_%s_%s", gc.redisKey, group, gc.getKeySuffix(currentTime))
 	sequence, err := gc.redisClient.IncrByExpiration(key, gc.getExpiration())
 	if err != nil {
 		return "", err
@@ -131,8 +130,8 @@ func (gc *GeneratorClient) getExpiration() time.Duration {
 	}
 }
 
-func (gc *GeneratorClient) getKeySuffix() string {
-	hr, min, sec := time.Now().Clock()
+func (gc *GeneratorClient) getKeySuffix(currentTime time.Time) string {
+	hr, min, sec := currentTime.Clock()
 	if gc.config.LifeCycle == Minute {
 		return fmt.Sprintf("%d_%d", hr, min)
 	} else if gc.config.LifeCycle == Hour {
@@ -142,50 +141,6 @@ func (gc *GeneratorClient) getKeySuffix() string {
 	}
 }
 
-func (gc *GeneratorClient) getTimeInMillis() string {
-	return Int2String(time.Now().Unix() / getLifeCycleNumber(gc.config.LifeCycle))
-	//return strconv.FormatInt(, 10)
-}
-
-const BaseString = "D3BFR76ZNHLJA2EP4U1XSKYMC5TWV8G9"
-const BaseStringLength = int64(len(BaseString))
-
-func Int2String(seq int64) (shortURL string) {
-	var charSeq []rune
-	if seq != 0 {
-		for seq != 0 {
-			mod := seq % BaseStringLength
-			div := seq / BaseStringLength
-			charSeq = append(charSeq, rune(BaseString[mod]))
-			seq = div
-		}
-	} else {
-		charSeq = append(charSeq, rune(BaseString[seq]))
-	}
-
-	tmpShortURL := string(charSeq)
-	shortURL = reverse(tmpShortURL)
-	return
-}
-
-func reverse(s string) string {
-	r := []rune(s)
-	for i, j := 0, len(r)-1; i < len(r)/2; i, j = i+1, j-1 {
-		r[i], r[j] = r[j], r[i]
-	}
-	return string(r)
-}
-
-func getLifeCycleNumber(lifeCycle LifeCycleType) int64 {
-	if lifeCycle == Minute {
-		return 60
-	} else if lifeCycle == Hour {
-		return 60 * 60
-	} else {
-		return 1
-	}
-}
-
-func hexEncodeToString(s string) string {
-	return strings.ToUpper(hex.EncodeToString([]byte(s)))
+func (gc *GeneratorClient) getTimeInMillis(currentTime time.Time) string {
+	return Int2String(currentTime.Unix() / getLifeCycleNumber(gc.config.LifeCycle))
 }
